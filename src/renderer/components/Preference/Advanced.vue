@@ -459,6 +459,38 @@
             </el-button-group>
           </el-col>
         </el-form-item>
+        <el-form-item
+          :label="`${$t('preferences.on-download-complete')}: `"
+          :label-width="formLabelWidth"
+        >
+          <el-col class="form-item-sub" :span="24">
+            <el-input
+              v-model="form.onDownloadComplete"
+              clearable
+              :placeholder="$t('preferences.on-download-complete-placeholder')"
+              auto-complete="off"
+            />
+            <div class="el-form-item__info" style="margin-top: 8px;">
+              {{ $t('preferences.on-download-complete-hint') }}
+            </div>
+          </el-col>
+        </el-form-item>
+        <el-form-item
+          :label="`${$t('preferences.on-bt-download-complete')}: `"
+          :label-width="formLabelWidth"
+        >
+          <el-col class="form-item-sub" :span="24">
+            <el-input
+              v-model="form.onBtDownloadComplete"
+              clearable
+              :placeholder="$t('preferences.on-bt-download-complete-placeholder')"
+              auto-complete="off"
+            />
+            <div class="el-form-item__info" style="margin-top: 8px;">
+              {{ $t('preferences.on-bt-download-complete-hint') }}
+            </div>
+          </el-col>
+        </el-form-item>
         <!-- <el-form-item
           :label="`${$t('preferences.developer')}: `"
           :label-width="formLabelWidth"
@@ -587,6 +619,8 @@ const initForm = (config) => {
     lastSyncTrackerTime,
     listenPort,
     logLevel,
+    onBtDownloadComplete,
+    onDownloadComplete,
     protocols,
     proxy,
     rpcListenPort,
@@ -608,6 +642,8 @@ const initForm = (config) => {
     lastSyncTrackerTime,
     listenPort,
     logLevel,
+    onBtDownloadComplete: typeof onBtDownloadComplete === 'string' ? onBtDownloadComplete : '',
+    onDownloadComplete: typeof onDownloadComplete === 'string' ? onDownloadComplete : '',
     proxy: cloneDeep(proxy),
     protocols: {
       magnet: true,

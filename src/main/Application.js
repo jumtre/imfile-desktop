@@ -15,6 +15,8 @@ import {
   PROXY_SCOPES
 } from '@shared/constants'
 import { checkIsNeedRun } from '@shared/utils'
+import { buildDownloadCompleteHookArgs } from '@shared/utils/downloadCompleteHook'
+import { spawnDownloadCompleteCommand } from './utils/downloadCompleteHookRunner'
 import {
   convertTrackerDataToComma,
   fetchBtTrackerFromSource,
@@ -61,6 +63,8 @@ export default class Application extends EventEmitter {
      * 用户确认执行 migrate-from-aria2 时为 true，用于显示迁移加载动画。
      */
     this._pendingLegacySessionMigrate = false
+    /** 已触发过下载完成钩子的 GID，避免重复执行 */
+    this.downloadCompleteHookFired = new Set()
     this.init()
   }
 
@@ -1242,6 +1246,52 @@ export default class Application extends EventEmitter {
     })
   }
 
+  /**
+   * 执行用户配置的下载完成钩子（兼容 aria2 --on-download-complete / --on-bt-download-complete）。
+   * 参数顺序：GID、文件数、文件路径。
+   */
+  runDownloadCompleteHook (task, fallbackPath, isBT) {
+    if (!task || !task.gid) {
+      return
+    }
+
+    const hookKey = `${isBT ? 'bt' : 'dl'}:${task.gid}`
+    if (this.downloadCompleteHookFired.has(hookKey)) {
+      return
+    }
+
+    const key = isBT ? 'on-bt-download-complete' : 'on-download-complete'
+    const command = String(this.configManager.getUserConfig(key) || '').trim()
+    if (!command) {
+      return
+    }
+
+    const { gid, numFiles, filePath } = buildDownloadCompleteHookArgs(
+      task,
+      fallbackPath
+    )
+    if (!gid) {
+      return
+    }
+
+    this.downloadCompleteHookFired.add(hookKey)
+    if (this.downloadCompleteHookFired.size > 5000) {
+      const recent = Array.from(this.downloadCompleteHookFired).slice(-2500)
+      this.downloadCompleteHookFired = new Set(recent)
+    }
+
+    logger.log(
+      '[imFile] download-complete hook:',
+      key,
+      command,
+      gid,
+      numFiles,
+      filePath
+    )
+
+    spawnDownloadCompleteCommand(command, gid, numFiles, filePath)
+  }
+
   sendCommand (command, ...args) {
     if (!this.emit(command, ...args)) {
       const window = this.windowManager.getFocusedWindow()
@@ -1386,6 +1436,7 @@ export default class Application extends EventEmitter {
     await this.stopEngine()
 
     app.clearRecentDocuments()
+    this.downloadCompleteHookFired.clear()
 
     const sessionPath = this.context.get('session-path')
     const goAria2SessionPath = this.context.get('go-aria2-session-path')
@@ -1617,13 +1668,14 @@ export default class Application extends EventEmitter {
       this.trayManager.handleSpeedChange(speed)
     })
 
-    this.on('task-download-complete', (task, path) => {
+    this.on('task-download-complete', (task, path, isBT) => {
       this.dockManager.openDock(path)
 
-      if (is.linux()) {
-        return
+      if (!is.linux() && path) {
+        app.addRecentDocument(path)
       }
-      app.addRecentDocument(path)
+
+      this.runDownloadCompleteHook(task, path, !!isBT)
     })
 
     if (this.configManager.userConfig.get('show-progress-bar')) {

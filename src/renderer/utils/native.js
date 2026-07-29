@@ -4,9 +4,9 @@ import { shell, nativeTheme } from '@electron/remote'
 import { ElMessage as Message } from 'element-plus'
 
 import {
-  getFileNameFromFile,
   isMagnetTask
 } from '@shared/utils'
+import { getTaskFullPath as resolveTaskFullPath } from '@shared/utils/taskPath'
 import { APP_THEME, TASK_STATUS } from '@shared/constants'
 
 export const showItemInFolder = (fullPath, { errorMsg }) => {
@@ -35,42 +35,7 @@ export const openItem = async (fullPath) => {
   return result
 }
 
-export const getTaskFullPath = (task) => {
-  if (!task || typeof task !== 'object') {
-    return ''
-  }
-
-  const { dir, files, bittorrent } = task
-  const filesSafe = Array.isArray(files) ? files : []
-  let result = dir ? resolve(dir) : ''
-
-  // Magnet link task
-  if (isMagnetTask(task)) {
-    return result
-  }
-
-  if (bittorrent && bittorrent.info && bittorrent.info.name) {
-    result = resolve(result, bittorrent.info.name)
-    return result
-  }
-
-  const [file] = filesSafe
-  const path = file && file.path ? resolve(file.path) : ''
-  let fileName = ''
-
-  if (path) {
-    result = path
-  } else {
-    if (filesSafe.length === 1 && file) {
-      fileName = getFileNameFromFile(file)
-      if (fileName) {
-        result = resolve(result, fileName)
-      }
-    }
-  }
-
-  return result
-}
+export const getTaskFullPath = (task) => resolveTaskFullPath(task)
 
 export const moveTaskFilesToTrash = (task) => {
   /**
