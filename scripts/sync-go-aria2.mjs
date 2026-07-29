@@ -45,7 +45,13 @@ const FOLDER_TO_GO = {
   }
 }
 
-const API_LATEST = 'https://api.github.com/repos/chenjia404/go-aria2/releases/latest'
+/** 默认同步的 go-aria2 版本；可通过环境变量 GO_ARIA2_VERSION 覆盖（如 v0.1.1） */
+const GO_ARIA2_VERSION = process.env.GO_ARIA2_VERSION || 'v0.1.1'
+
+function releaseApiUrl (version) {
+  const tag = version.startsWith('v') ? version : `v${version}`
+  return `https://api.github.com/repos/chenjia404/go-aria2/releases/tags/${tag}`
+}
 
 function log (...args) {
   console.log('[sync-go-aria2]', ...args)
@@ -220,8 +226,8 @@ async function main () {
 
   log(`发现 ${targets.length} 个目标:`, targets.map((t) => `${t.platform}/${t.folderArch}`).join(', '))
 
-  const release = await fetchJson(API_LATEST)
-  log(`最新 Release: ${release.tag_name}`)
+  const release = await fetchJson(releaseApiUrl(GO_ARIA2_VERSION))
+  log(`同步 Release: ${release.tag_name}`)
 
   for (const t of targets) {
     await syncOne(t, release)
