@@ -7,6 +7,7 @@ allowBuilds:
 
 minimumReleaseAgeExclude:
   - postcss
+  - axios@1.19.0
 
 overrides:
   punycode: 2.3.1

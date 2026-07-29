@@ -19,6 +19,9 @@ yarn.lock
 # Eslint Cache
 .eslintcache*
 
+# Vitest coverage
+coverage/
+
 # electron builder
 *.provisionprofile
 build/*.plist
