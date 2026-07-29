@@ -430,6 +430,30 @@ const extractHttpUriFromFile = (file) => {
   return ''
 }
 
+/** HTTP/FTP 等可替换 URI 的任务：返回 aria2 fileIndex（1-based）与当前链接 */
+export const getTaskUriLocation = (task = {}) => {
+  if (!task || checkTaskIsBT(task) || task.engine === 'goed2kd') {
+    return null
+  }
+
+  const files = task.files || []
+  for (let i = 0; i < files.length; i++) {
+    const uri = extractHttpUriFromFile(files[i])
+    if (uri && /^(https?|ftp):\/\//i.test(uri)) {
+      return {
+        fileIndex: i + 1,
+        uri
+      }
+    }
+  }
+
+  return null
+}
+
+export const canUpdateTaskUri = (task = {}) => {
+  return Boolean(getTaskUriLocation(task))
+}
+
 export const getTaskUri = (task, withTracker = false) => {
   if (!task) {
     return ''

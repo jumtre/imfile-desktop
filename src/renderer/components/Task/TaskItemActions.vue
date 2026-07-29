@@ -30,6 +30,9 @@
       <i v-if="action === 'LINK'" @click.stop="onLinkClick">
         <mo-icon name="link" width="15" height="15" />
       </i>
+      <i v-if="action === 'EDIT_LINK'" @click.stop="onEditLinkClick">
+        <mo-icon name="server-refresh" width="15" height="15" />
+      </i>
       <i v-if="action === 'INFO'" @click.stop="onInfoClick">
         <mo-icon name="info-circle" width="15" height="15" />
       </i>
@@ -44,6 +47,7 @@ import is from 'electron-is'
 import { commands } from '@/components/CommandManager/instance'
 import { TASK_STATUS } from '@shared/constants'
 import {
+  canUpdateTaskUri,
   checkTaskIsSeeder,
   getTaskName
 } from '@shared/utils'
@@ -54,7 +58,7 @@ import '@/components/Icons/task-stop-line'
 import '@/components/Icons/task-restart'
 import '@/components/Icons/delete'
 import '@/components/Icons/folder'
-import '@/components/Icons/link'
+import '@/components/Icons/server-refresh'
 import '@/components/Icons/info-circle'
 import '@/components/Icons/trash'
 import '@/components/Icons/white-file'
@@ -113,6 +117,9 @@ export default {
           result.push('LINK', 'INFO')
           break
         case 'DETAIL':
+          if (canUpdateTaskUri(this.task)) {
+            result.push('EDIT_LINK')
+          }
           result.push('LINK')
           break
       }
@@ -181,9 +188,17 @@ export default {
       const { path } = this
       commands.emit('reveal-in-folder', { path })
     },
-    onLinkClick () {
+    onLinkClick (event) {
       const { task } = this
+      if (event.altKey && canUpdateTaskUri(task)) {
+        commands.emit('update-task-link', { task })
+        return
+      }
       commands.emit('copy-task-link', { task })
+    },
+    onEditLinkClick () {
+      const { task } = this
+      commands.emit('update-task-link', { task })
     },
     onInfoClick () {
       const { task } = this

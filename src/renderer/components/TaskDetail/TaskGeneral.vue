@@ -27,6 +27,24 @@
 </template>
       </el-input>
     </el-form-item>
+    <el-form-item :label="`${$t('task.task-uri')} `" v-if="canUpdateUri">
+      <el-input
+        v-model="uriInput"
+        type="textarea"
+        :autosize="{ minRows: 2, maxRows: 4 }"
+        :placeholder="$t('task.update-link-placeholder')"
+      />
+      <div class="update-uri-actions">
+        <el-button
+          type="primary"
+          :loading="updatingUri"
+          :disabled="!uriChanged"
+          @click="handleUpdateUri"
+        >
+          {{ $t('task.update-link') }}
+        </el-button>
+      </div>
+    </el-form-item>
     <el-form-item :label="`${$t('task.task-status')} `">
       <div class="form-static-value">
         {{ taskStatus && taskStatus.toUpperCase() }}
@@ -88,12 +106,14 @@ import { useI18n } from 'vue-i18n'
 import {
   bytesToSize,
   calcFormLabelWidth,
+  canUpdateTaskUri,
   checkTaskIsBT,
   checkTaskIsSeeder,
   getTaskName,
   getTaskNumPieces,
   getTaskUri,
-  localeDateTimeFormat
+  localeDateTimeFormat,
+  splitTaskLinks
 } from '@shared/utils'
 import { APP_THEME, TASK_STATUS } from '@shared/constants'
 import { getTaskFullPath } from '@/utils/native'
@@ -122,7 +142,9 @@ export default {
     return {
       form: {},
       formLabelWidth: calcFormLabelWidth(locale),
-      locale
+      locale,
+      uriInput: '',
+      updatingUri: false
     }
   },
   computed: {
@@ -169,10 +191,25 @@ export default {
     isBT () {
       return checkTaskIsBT(this.task)
     },
+    canUpdateUri () {
+      return canUpdateTaskUri(this.task)
+    },
+    uriChanged () {
+      const current = getTaskUri(this.task)
+      return this.uriInput.trim() !== '' && this.uriInput.trim() !== current
+    },
     /** 引擎未返回 numPieces 时用 totalLength/pieceLength 推算，避免详情里只有分片大小、数量空白 */
     btNumPiecesDisplay () {
       const n = getTaskNumPieces(this.task)
       return n != null ? n : '—'
+    }
+  },
+  watch: {
+    task: {
+      immediate: true,
+      handler (task) {
+        this.uriInput = task ? getTaskUri(task) : ''
+      }
     }
   },
   methods: {
@@ -185,6 +222,41 @@ export default {
         .then(() => {
           this.$msg.success(this.t('task.copy-link-success'))
         })
+    },
+    handleUpdateUri () {
+      const { task } = this
+      const links = splitTaskLinks(this.uriInput)
+      if (!links.length) {
+        this.$msg.warning(this.t('task.update-link-required'))
+        return
+      }
+      if (links.length > 1) {
+        this.$msg.warning(this.t('task.update-link-single-only'))
+        return
+      }
+
+      const taskName = getTaskName(task, {
+        defaultName: this.t('task.get-task-name')
+      })
+      this.updatingUri = true
+      this.$store.dispatch('task/changeTaskUri', {
+        task,
+        newUri: links[0]
+      })
+        .then(() => {
+          this.$msg.success(this.t('task.update-link-success', { taskName }))
+        })
+        .catch((err) => {
+          const code = err && err.code
+          if (code === 'CHANGE_URI_NOT_SUPPORTED') {
+            this.$msg.error(this.t('task.update-link-not-supported'))
+            return
+          }
+          this.$msg.error(this.t('task.update-link-fail', { taskName }))
+        })
+        .finally(() => {
+          this.updatingUri = false
+        })
     }
   }
 }
@@ -193,6 +265,10 @@ export default {
 <style lang="scss">
 .copy-link {
   cursor: pointer;
+}
+.update-uri-actions {
+  margin-top: 8px;
+  text-align: right;
 }
 .mo-task-general {
   .el-form-item__label {

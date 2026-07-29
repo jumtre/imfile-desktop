@@ -4,6 +4,7 @@
     <router-view />
     <mo-speedometer />
     <mo-add-task :visible="addTaskVisible" :type="addTaskType" />
+    <mo-update-task-link />
     <mo-about-panel :visible="aboutPanelVisible" />
     <mo-task-detail
       :visible="taskDetailVisible"
@@ -22,6 +23,7 @@ import AboutPanel from '@/components/About/AboutPanel'
 import Aside from '@/components/Aside/Index'
 import Speedometer from '@/components/Speedometer/Speedometer'
 import AddTask from '@/components/Task/AddTask'
+import UpdateTaskLink from '@/components/Task/UpdateTaskLink'
 import TaskDetail from '@/components/TaskDetail/Index'
 import Dragger from '@/components/Dragger/Index'
 
@@ -32,6 +34,7 @@ export default {
     [Aside.name]: Aside,
     [Speedometer.name]: Speedometer,
     [AddTask.name]: AddTask,
+    [UpdateTaskLink.name]: UpdateTaskLink,
     [TaskDetail.name]: TaskDetail,
     [Dragger.name]: Dragger
   },
