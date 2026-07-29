@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron'
 import api from '@/api'
 import { EMPTY_STRING, POST_DOWNLOAD_ACTION, TASK_STATUS } from '@shared/constants'
 import { checkTaskIsBT, intersection, isTaskDownloading } from '@shared/utils'
+import { getTaskFullPath } from '@shared/utils/taskPath'
 import { adaptAria2Task, adaptGoed2kdTask } from '../taskAdapter'
 
 const resolveGoed2kdList = (resp) => {
@@ -56,6 +57,8 @@ const state = {
   currentTaskPeers: [],
   seedingList: [],
   taskList: [],
+  /** taskKey -> 上次轮询时的状态，用于检测 goed2kd 完成 */
+  taskStatusSnapshot: {},
   count: {
     downloading: 0,
     seeding: 0,
@@ -80,6 +83,9 @@ const mutations = {
   },
   UPDATE_TASK_LIST (state, taskList) {
     state.taskList = taskList
+  },
+  UPDATE_TASK_STATUS_SNAPSHOT (state, snapshot) {
+    state.taskStatusSnapshot = snapshot
   },
   UPDATE_SELECTED_TASK_KEY_LIST (state, taskKeyList) {
     state.selectedTaskKeyList = taskKeyList
@@ -111,6 +117,39 @@ const mutations = {
 }
 
 const actions = {
+  emitDownloadCompleteEvent (context, { task, isBT = false }) {
+    if (!task?.gid) {
+      return
+    }
+    const path = getTaskFullPath(task)
+    ipcRenderer.send('event', 'task-download-complete', task, path, !!isBT)
+  },
+  detectGoed2kdCompletedTasks ({ state, commit, dispatch }, taskList = []) {
+    const newlyCompleted = []
+    const nextSnapshot = { ...state.taskStatusSnapshot }
+
+    for (const task of taskList) {
+      if (task.engine !== 'goed2kd') {
+        continue
+      }
+      const key = task.taskKey
+      const prev = nextSnapshot[key]
+      if (
+        task.status === TASK_STATUS.COMPLETE &&
+        prev &&
+        prev !== TASK_STATUS.COMPLETE
+      ) {
+        newlyCompleted.push(task)
+      }
+      nextSnapshot[key] = task.status
+    }
+
+    commit('UPDATE_TASK_STATUS_SNAPSHOT', nextSnapshot)
+
+    for (const task of newlyCompleted) {
+      dispatch('emitDownloadCompleteEvent', { task, isBT: false })
+    }
+  },
   setOnCompleteAction ({ commit }, action) {
     commit('SET_ON_COMPLETE_ACTION', action)
   },
@@ -250,6 +289,7 @@ const actions = {
         }
 
         commit('UPDATE_TASK_LIST', taskList)
+        dispatch('detectGoed2kdCompletedTasks', taskList)
         if (listType !== 'all') {
           commit('UPDATE_COUNT', {
             ...state.count,
@@ -501,9 +541,12 @@ const actions = {
       console.warn('[imFile] saveSession failed:', err)
     })
   },
-  purgeTaskRecord ({ dispatch }) {
+  purgeTaskRecord ({ commit, dispatch }) {
     return api.purgeTaskRecord()
-      .finally(() => dispatch('fetchList'))
+      .finally(() => {
+        commit('UPDATE_TASK_STATUS_SNAPSHOT', {})
+        dispatch('fetchList')
+      })
   },
   toggleTask ({ dispatch }, task) {
     const { status } = task

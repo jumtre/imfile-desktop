@@ -30,6 +30,7 @@ import {
   showItemInFolder
 } from '@/utils/native'
 import { checkTaskIsBT, getTaskName } from '@shared/utils'
+import { adaptTaskForMainFlow } from '@/store/taskAdapter'
 import { POST_DOWNLOAD_ACTION } from '@shared/constants'
 
 const POST_DOWNLOAD_CONFIRM_SECONDS = 10
@@ -192,11 +193,22 @@ export default {
         })
     },
     handleDownloadComplete (task, isBT) {
+      const normalized = adaptTaskForMainFlow(task)
+      if (!normalized?.gid) {
+        return
+      }
+
       this.$store.dispatch('task/saveSession')
 
-      const path = getTaskFullPath(task)
-      this.showTaskCompleteNotify(task, isBT, path)
-      this.$electron.ipcRenderer.send('event', 'task-download-complete', task, path, isBT)
+      const path = getTaskFullPath(normalized)
+      this.showTaskCompleteNotify(normalized, isBT, path)
+      this.$electron.ipcRenderer.send(
+        'event',
+        'task-download-complete',
+        normalized,
+        path,
+        isBT
+      )
 
       this.$nextTick(() => {
         this.$store.dispatch('task/runPostDownloadActionIfIdle')

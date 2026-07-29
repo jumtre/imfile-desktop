@@ -1,6 +1,14 @@
 import { resolve } from 'node:path'
 
-import { getFileNameFromFile, isTaskFileEntrySelected } from './index'
+import {
+  getFileNameFromFile,
+  isTaskFileEntrySelected
+} from './index'
+import { getTaskFullPath } from './taskPath'
+
+const hasFileSelectionMeta = (files = []) => {
+  return files.some((file) => file.selected != null || file.Selected != null)
+}
 
 /**
  * 按 aria2 Event Hook 约定构造参数：GID、文件数、首个文件路径。
@@ -10,19 +18,22 @@ export const buildDownloadCompleteHookArgs = (task = {}, fallbackPath = '') => {
   const gid = String(task.gid || '')
   const files = Array.isArray(task.files) ? task.files : []
   const selectedFiles = files.filter((file) => isTaskFileEntrySelected(file))
-  const relevantFiles = selectedFiles.length > 0 ? selectedFiles : files
-  const numFiles = relevantFiles.length > 0
-    ? relevantFiles.length
-    : (fallbackPath ? 1 : 0)
+  const relevantFiles = hasFileSelectionMeta(files) ? selectedFiles : files
+  const resolvedFallback = String(fallbackPath || getTaskFullPath(task) || '')
 
-  let filePath = String(fallbackPath || '')
+  let numFiles = relevantFiles.length
+  if (numFiles === 0 && resolvedFallback) {
+    numFiles = 1
+  }
+
+  let filePath = resolvedFallback
   const first = relevantFiles[0]
   if (first) {
     if (first.path) {
       filePath = resolve(String(first.path))
-    } else if (numFiles === 1) {
+    } else if (relevantFiles.length === 1 && task.dir) {
       const name = getFileNameFromFile(first)
-      if (name && task.dir) {
+      if (name) {
         filePath = resolve(String(task.dir), name)
       }
     }
@@ -30,7 +41,7 @@ export const buildDownloadCompleteHookArgs = (task = {}, fallbackPath = '') => {
 
   return {
     gid,
-    numFiles: String(Math.max(numFiles, 1)),
+    numFiles: String(numFiles),
     filePath
   }
 }

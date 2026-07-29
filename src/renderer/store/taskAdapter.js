@@ -1,3 +1,5 @@
+import { dirname } from 'node:path'
+
 import { getTaskName, normalizeTaskStatus } from '@shared/utils'
 
 const toNumber = (value, defaultValue = 0) => {
@@ -33,6 +35,7 @@ export const adaptGoed2kdTask = (task = {}) => {
   const name = task.file_name || task.file_path || id
   const status = normalizeGoed2kdStatus(task.status || task.state)
   const filePath = task.file_path ? String(task.file_path) : ''
+  const downloadDir = filePath ? dirname(filePath) : ''
 
   return {
     ...task,
@@ -51,13 +54,13 @@ export const adaptGoed2kdTask = (task = {}) => {
     downloadSpeed: toNumber(task.download_rate, 0),
     progress,
     raw: task,
-    dir: filePath || '',
+    dir: downloadDir,
     bittorrent: null
   }
 }
 
 export const adaptTaskForMainFlow = (task = {}) => {
-  if (task.engine === 'goed2kd' || task.hash) {
+  if (task.engine === 'goed2kd') {
     return adaptGoed2kdTask(task)
   }
   return adaptAria2Task(task)

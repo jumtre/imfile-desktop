@@ -16,6 +16,7 @@ import {
 } from '@shared/constants'
 import { checkIsNeedRun } from '@shared/utils'
 import { buildDownloadCompleteHookArgs } from '@shared/utils/downloadCompleteHook'
+import { spawnDownloadCompleteCommand } from './utils/downloadCompleteHookRunner'
 import {
   convertTrackerDataToComma,
   fetchBtTrackerFromSource,
@@ -62,6 +63,8 @@ export default class Application extends EventEmitter {
      * 用户确认执行 migrate-from-aria2 时为 true，用于显示迁移加载动画。
      */
     this._pendingLegacySessionMigrate = false
+    /** 已触发过下载完成钩子的 GID，避免重复执行 */
+    this.downloadCompleteHookFired = new Set()
     this.init()
   }
 
@@ -1248,6 +1251,15 @@ export default class Application extends EventEmitter {
    * 参数顺序：GID、文件数、文件路径。
    */
   runDownloadCompleteHook (task, fallbackPath, isBT) {
+    if (!task || !task.gid) {
+      return
+    }
+
+    const hookKey = `${isBT ? 'bt' : 'dl'}:${task.gid}`
+    if (this.downloadCompleteHookFired.has(hookKey)) {
+      return
+    }
+
     const key = isBT ? 'on-bt-download-complete' : 'on-download-complete'
     const command = String(this.configManager.getUserConfig(key) || '').trim()
     if (!command) {
@@ -1262,6 +1274,8 @@ export default class Application extends EventEmitter {
       return
     }
 
+    this.downloadCompleteHookFired.add(hookKey)
+
     logger.log(
       '[imFile] download-complete hook:',
       key,
@@ -1271,20 +1285,7 @@ export default class Application extends EventEmitter {
       filePath
     )
 
-    const spawnOpts = { detached: true, stdio: 'ignore' }
-    if (is.windows()) {
-      spawnOpts.windowsHide = true
-    }
-
-    try {
-      const child = spawn(command, [gid, numFiles, filePath], spawnOpts)
-      child.on('error', (err) => {
-        logger.warn('[imFile] download-complete hook error:', err.message)
-      })
-      child.unref()
-    } catch (err) {
-      logger.warn('[imFile] download-complete hook spawn failed:', err.message)
-    }
+    spawnDownloadCompleteCommand(command, gid, numFiles, filePath)
   }
 
   sendCommand (command, ...args) {
@@ -1431,6 +1432,7 @@ export default class Application extends EventEmitter {
     await this.stopEngine()
 
     app.clearRecentDocuments()
+    this.downloadCompleteHookFired.clear()
 
     const sessionPath = this.context.get('session-path')
     const goAria2SessionPath = this.context.get('go-aria2-session-path')
@@ -1665,13 +1667,11 @@ export default class Application extends EventEmitter {
     this.on('task-download-complete', (task, path, isBT) => {
       this.dockManager.openDock(path)
 
-      if (is.linux()) {
-        // Linux 无 addRecentDocument，但仍需执行下载完成钩子
-      } else {
+      if (!is.linux() && path) {
         app.addRecentDocument(path)
       }
 
-      this.runDownloadCompleteHook(task, path, isBT)
+      this.runDownloadCompleteHook(task, path, !!isBT)
     })
 
     if (this.configManager.userConfig.get('show-progress-bar')) {

@@ -110,7 +110,7 @@ export default {
   'not-saved-confirm': 'The modified preferences will be lost, are you sure you want to leave?',
   'on-download-complete': 'Command on download complete',
   'on-download-complete-placeholder': '/path/to/script.sh',
-  'on-download-complete-hint': 'Same as aria2 --on-download-complete: run an executable or script after a download finishes. Arguments: GID, number of files, file path. Leave empty to disable.',
+  'on-download-complete-hint': 'Same as aria2 --on-download-complete: run an executable or script after a download finishes. Arguments: GID, number of files, file path. Works for HTTP, BT, ED2K, and other tasks. Leave empty to disable.',
   'on-bt-download-complete': 'Command on BT download complete',
   'on-bt-download-complete-placeholder': '/path/to/bt-script.sh',
   'on-bt-download-complete-hint': 'Same as aria2 --on-bt-download-complete: run before seeding starts after a BitTorrent download completes. Same argument format. Leave empty to disable.'
