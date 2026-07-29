@@ -58,6 +58,7 @@ import '@/components/Icons/task-stop-line'
 import '@/components/Icons/task-restart'
 import '@/components/Icons/delete'
 import '@/components/Icons/folder'
+import '@/components/Icons/link'
 import '@/components/Icons/server-refresh'
 import '@/components/Icons/info-circle'
 import '@/components/Icons/trash'
@@ -114,6 +115,9 @@ export default {
 
       switch (mode) {
         case 'LIST':
+          if (canUpdateTaskUri(this.task)) {
+            result.push('EDIT_LINK')
+          }
           result.push('LINK', 'INFO')
           break
         case 'DETAIL':

@@ -105,6 +105,7 @@ export default {
   'update-link-placeholder': '请输入新的下载链接',
   'update-link-required': '请输入有效的下载链接',
   'update-link-single-only': '每次只能更新一个下载链接',
+  'update-link-invalid-scheme': '仅支持 HTTP、HTTPS 或 FTP 链接',
   'update-link-success': '任务 "{taskName}" 链接更新成功',
   'update-link-fail': '任务 "{taskName}" 链接更新失败',
   'update-link-not-supported': '当前任务类型不支持更新链接',

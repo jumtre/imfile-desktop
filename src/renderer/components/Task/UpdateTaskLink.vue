@@ -32,8 +32,15 @@
 
 <script>
 import { useI18n } from 'vue-i18n'
+import api from '@/api'
 import { commands } from '@/components/CommandManager/instance'
-import { canUpdateTaskUri, getTaskName, getTaskUri, splitTaskLinks } from '@shared/utils'
+import {
+  canUpdateTaskUri,
+  getTaskName,
+  getTaskUri,
+  isUpdatableDownloadUri,
+  splitTaskLinks
+} from '@shared/utils'
 
 export default {
   name: 'mo-update-task-link',
@@ -66,6 +73,10 @@ export default {
                 callback(new Error(this.t('task.update-link-single-only')))
                 return
               }
+              if (!isUpdatableDownloadUri(links[0])) {
+                callback(new Error(this.t('task.update-link-invalid-scheme')))
+                return
+              }
               callback()
             },
             trigger: 'blur'
@@ -75,13 +86,23 @@ export default {
     }
   },
   methods: {
-    open (task) {
-      if (!canUpdateTaskUri(task)) {
+    async open (task) {
+      const gid = task.id || task.gid
+      let resolvedTask = task
+
+      try {
+        resolvedTask = await api.fetchTaskItem({ gid })
+      } catch (err) {
+        console.warn('[imFile] fetch task before update-link dialog failed:', err)
+      }
+
+      if (!canUpdateTaskUri(resolvedTask)) {
         this.$msg.warning(this.t('task.update-link-not-supported'))
         return
       }
-      this.task = task
-      this.form.uri = getTaskUri(task)
+
+      this.task = resolvedTask
+      this.form.uri = getTaskUri(resolvedTask)
       this.visible = true
     },
     handleClose () {
@@ -121,17 +142,24 @@ export default {
             this.handleClose()
           })
           .catch((err) => {
-            const code = err && err.code
-            if (code === 'CHANGE_URI_NOT_SUPPORTED') {
-              this.$msg.error(this.t('task.update-link-not-supported'))
-              return
-            }
-            this.$msg.error(this.t('task.update-link-fail', { taskName }))
+            this.showSubmitError(err, taskName)
           })
           .finally(() => {
             this.submitting = false
           })
       })
+    },
+    showSubmitError (err, taskName) {
+      const code = err && err.code
+      if (code === 'CHANGE_URI_NOT_SUPPORTED') {
+        this.$msg.error(this.t('task.update-link-not-supported'))
+        return
+      }
+      if (code === 'CHANGE_URI_INVALID') {
+        this.$msg.error(this.t('task.update-link-invalid-scheme'))
+        return
+      }
+      this.$msg.error(this.t('task.update-link-fail', { taskName }))
     }
   },
   mounted () {

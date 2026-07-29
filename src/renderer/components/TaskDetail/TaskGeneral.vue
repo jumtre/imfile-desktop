@@ -33,6 +33,7 @@
         type="textarea"
         :autosize="{ minRows: 2, maxRows: 4 }"
         :placeholder="$t('task.update-link-placeholder')"
+        @input="onUriInput"
       />
       <div class="update-uri-actions">
         <el-button
@@ -112,6 +113,7 @@ import {
   getTaskName,
   getTaskNumPieces,
   getTaskUri,
+  isUpdatableDownloadUri,
   localeDateTimeFormat,
   splitTaskLinks
 } from '@shared/utils'
@@ -144,6 +146,8 @@ export default {
       formLabelWidth: calcFormLabelWidth(locale),
       locale,
       uriInput: '',
+      uriEditing: false,
+      uriEditGid: '',
       updatingUri: false
     }
   },
@@ -208,13 +212,25 @@ export default {
     task: {
       immediate: true,
       handler (task) {
-        this.uriInput = task ? getTaskUri(task) : ''
+        const gid = task ? (task.id || task.gid) : ''
+        if (gid !== this.uriEditGid) {
+          this.uriEditGid = gid
+          this.uriEditing = false
+          this.uriInput = task ? getTaskUri(task) : ''
+          return
+        }
+        if (!this.uriEditing && task) {
+          this.uriInput = getTaskUri(task)
+        }
       }
     }
   },
   methods: {
     bytesToSize,
     localeDateTimeFormat,
+    onUriInput () {
+      this.uriEditing = true
+    },
     handleCopyClick () {
       const { task } = this
       const uri = getTaskUri(task)
@@ -234,6 +250,10 @@ export default {
         this.$msg.warning(this.t('task.update-link-single-only'))
         return
       }
+      if (!isUpdatableDownloadUri(links[0])) {
+        this.$msg.warning(this.t('task.update-link-invalid-scheme'))
+        return
+      }
 
       const taskName = getTaskName(task, {
         defaultName: this.t('task.get-task-name')
@@ -244,12 +264,17 @@ export default {
         newUri: links[0]
       })
         .then(() => {
+          this.uriEditing = false
           this.$msg.success(this.t('task.update-link-success', { taskName }))
         })
         .catch((err) => {
           const code = err && err.code
           if (code === 'CHANGE_URI_NOT_SUPPORTED') {
             this.$msg.error(this.t('task.update-link-not-supported'))
+            return
+          }
+          if (code === 'CHANGE_URI_INVALID') {
+            this.$msg.error(this.t('task.update-link-invalid-scheme'))
             return
           }
           this.$msg.error(this.t('task.update-link-fail', { taskName }))

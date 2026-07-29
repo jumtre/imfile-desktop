@@ -104,6 +104,7 @@ export default {
   'update-link-placeholder': 'Enter the new download URL',
   'update-link-required': 'Please enter a valid download URL',
   'update-link-single-only': 'Only one download URL can be updated at a time',
+  'update-link-invalid-scheme': 'Only HTTP, HTTPS, or FTP URLs are supported',
   'update-link-success': 'Successfully updated link for "{taskName}"',
   'update-link-fail': 'Failed to update link for "{taskName}"',
   'update-link-not-supported': 'Updating the link is not supported for this task type',

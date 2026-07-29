@@ -424,7 +424,7 @@ const extractHttpUriFromFile = (file) => {
     return fromUris
   }
   const { path } = file
-  if (path && /^https?:\/\//i.test(String(path))) {
+  if (path && /^(https?|ftp):\/\//i.test(String(path))) {
     return String(path)
   }
   return ''
@@ -452,6 +452,10 @@ export const getTaskUriLocation = (task = {}) => {
 
 export const canUpdateTaskUri = (task = {}) => {
   return Boolean(getTaskUriLocation(task))
+}
+
+export const isUpdatableDownloadUri = (uri = '') => {
+  return /^(https?|ftp):\/\//i.test(String(uri || '').trim())
 }
 
 export const getTaskUri = (task, withTracker = false) => {
