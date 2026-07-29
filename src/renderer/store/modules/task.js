@@ -148,6 +148,7 @@ const actions = {
 
     for (const task of newlyCompleted) {
       dispatch('emitDownloadCompleteEvent', { task, isBT: false })
+      dispatch('runPostDownloadActionIfIdle')
     }
   },
   setOnCompleteAction ({ commit }, action) {

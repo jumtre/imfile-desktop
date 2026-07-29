@@ -1275,6 +1275,10 @@ export default class Application extends EventEmitter {
     }
 
     this.downloadCompleteHookFired.add(hookKey)
+    if (this.downloadCompleteHookFired.size > 5000) {
+      const recent = Array.from(this.downloadCompleteHookFired).slice(-2500)
+      this.downloadCompleteHookFired = new Set(recent)
+    }
 
     logger.log(
       '[imFile] download-complete hook:',
