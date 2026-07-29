@@ -11,7 +11,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(rootDir, 'src/renderer'),
       '@shared': path.resolve(rootDir, 'src/shared')
-    }
+    },
+    extensions: ['.mjs', '.js', '.json', '.vue']
   },
   test: {
     coverage: {
@@ -20,6 +21,7 @@ export default defineConfig({
         'src/shared/utils/**/*.js',
         'src/main/utils/**/*.js',
         'src/main/configs/**/*.js',
+        'src/main/core/**/*.js',
         'src/renderer/components/**/*.vue'
       ],
       reporter: ['text', 'lcov']
