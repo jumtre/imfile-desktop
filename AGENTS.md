@@ -33,4 +33,4 @@ imFile 是一个基于 Electron + Vue 3 的全功能桌面下载管理器（Motr
 5. **D-Bus 错误**：容器环境中会出现 `Failed to connect to the bus` 错误，这是预期行为，不影响应用功能。
 6. **UPnP 错误**：Cloud Agent 环境中 UPnP/NAT-PMP 端口映射不可用，不影响基本下载功能。
 7. **`pnpm run pack` 不可用**：webpack-cli v7 移除了 `--node-env` 参数，pack 脚本存在兼容问题。开发中使用 `pnpm run dev` 即可。
-8. **单元测试**：使用 Vitest，测试文件位于 `tests/`，主要覆盖 `src/shared/utils` 等纯函数模块。CI 在每次 push/PR 时自动运行 lint、test 与 build。
+8. **单元测试**：使用 Vitest，测试文件位于 `tests/`。覆盖 `src/shared/utils` 纯函数、`src/main/utils` 主进程工具、`src/renderer/components` Vue 组件（`@vue/test-utils` + `happy-dom`）。CI 在每次 push/PR 时自动运行 lint、test 与 build。
