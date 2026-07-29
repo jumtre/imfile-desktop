@@ -1,4 +1,4 @@
-import fetch from 'node-fetch'
+const fetch = globalThis.fetch.bind(globalThis)
 
 export default class Goed2kdClient {
   constructor (options = {}) {
