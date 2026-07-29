@@ -265,6 +265,19 @@ export default class Api {
     return this.client.call('changeOption', ...args)
   }
 
+  changeUri (params = {}) {
+    const { gid, fileIndex, delUris = [], addUris = [], position } = params
+    const args = compactUndefined([gid, fileIndex, delUris, addUris, position])
+    return this.client.call('changeUri', ...args).catch((err) => {
+      if (isRpcMethodNotFound(err)) {
+        const unsupported = new Error('changeUri is not supported by current engine')
+        unsupported.code = 'CHANGE_URI_NOT_SUPPORTED'
+        throw unsupported
+      }
+      throw err
+    })
+  }
+
   getGlobalStat () {
     return this.client.call('getGlobalStat')
   }

@@ -1,7 +1,14 @@
 import { ipcRenderer } from 'electron'
 import api from '@/api'
 import { EMPTY_STRING, POST_DOWNLOAD_ACTION, TASK_STATUS } from '@shared/constants'
-import { checkTaskIsBT, intersection, isTaskDownloading } from '@shared/utils'
+import {
+  checkTaskIsBT,
+  getTaskUriLocation,
+  intersection,
+  isTaskDownloading,
+  isUpdatableDownloadUri,
+  normalizeTaskStatus
+} from '@shared/utils'
 import { getTaskFullPath } from '@shared/utils/taskPath'
 import { adaptAria2Task, adaptGoed2kdTask } from '../taskAdapter'
 
@@ -411,6 +418,80 @@ const actions = {
   changeTaskOption (_, payload) {
     const { gid, options } = payload
     return api.changeOption({ gid, options })
+  },
+  async changeTaskUri ({ dispatch }, payload) {
+    const { task, newUri } = payload
+    const gid = task.id || task.gid
+
+    const trimmedUri = String(newUri || '').trim()
+    if (!trimmedUri) {
+      const err = new Error('new uri is required')
+      err.code = 'CHANGE_URI_INVALID'
+      throw err
+    }
+
+    if (!isUpdatableDownloadUri(trimmedUri)) {
+      const err = new Error('invalid download uri')
+      err.code = 'CHANGE_URI_INVALID'
+      throw err
+    }
+
+    let freshTask = task
+    try {
+      freshTask = await api.fetchTaskItem({ gid })
+    } catch (err) {
+      console.warn('[imFile] fetch task before changeUri failed:', err)
+    }
+
+    const location = getTaskUriLocation(freshTask)
+    if (!location) {
+      const err = new Error('cannot update uri for this task')
+      err.code = 'CHANGE_URI_NOT_SUPPORTED'
+      throw err
+    }
+
+    const { fileIndex, uri: oldUri } = location
+    if (trimmedUri === oldUri) {
+      return
+    }
+
+    const normalizedStatus = normalizeTaskStatus(freshTask.status || task.status)
+    const { ACTIVE, ERROR } = TASK_STATUS
+    const wasActive = normalizedStatus === ACTIVE
+    const shouldResume = wasActive || normalizedStatus === ERROR
+
+    if (wasActive) {
+      await dispatch('forcePauseTask', task)
+    }
+
+    try {
+      const result = await api.changeUri({
+        gid,
+        fileIndex,
+        delUris: [oldUri],
+        addUris: [trimmedUri]
+      })
+
+      const [delCount, addCount] = Array.isArray(result) ? result : []
+      if (delCount < 1 || addCount < 1) {
+        const err = new Error('changeUri returned unexpected result')
+        err.code = 'CHANGE_URI_FAILED'
+        throw err
+      }
+    } catch (err) {
+      if (wasActive) {
+        await dispatch('resumeTask', task).catch(() => {})
+      }
+      throw err
+    }
+
+    await dispatch('saveSession')
+    await dispatch('fetchList')
+    await dispatch('fetchItem', gid)
+
+    if (shouldResume) {
+      await dispatch('resumeTask', task)
+    }
   },
   removeTask ({ state, dispatch }, task) {
     const gid = task.id || task.gid
