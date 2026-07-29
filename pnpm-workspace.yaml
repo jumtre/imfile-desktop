@@ -2,10 +2,12 @@ allowBuilds:
   '@parcel/watcher': true
   electron: true
   electron-winstaller: true
+  esbuild: true
   unrs-resolver: true
 
 minimumReleaseAgeExclude:
   - postcss
+  - axios@1.19.0
 
 overrides:
   punycode: 2.3.1
