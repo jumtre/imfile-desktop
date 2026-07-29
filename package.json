@@ -14,7 +14,7 @@
     "type": "git",
     "url": "https://github.com/imfile-io/imfile-desktop.git"
   },
-  "packageManager": "pnpm@10.34.5",
+  "packageManager": "pnpm@11.18.0",
   "scripts": {
     "release": "node .electron-vue/build.js && electron-builder --publish onTagOrDraft",
     "build": "node .electron-vue/build.js && electron-builder",
@@ -123,13 +123,5 @@
     "webpack-hot-middleware": "^2.26.1",
     "webpack-merge": "^6.0.1",
     "worker-loader": "^3.0.8"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "electron"
-    ],
-    "overrides": {
-      "punycode": "2.3.1"
-    }
   }
 }

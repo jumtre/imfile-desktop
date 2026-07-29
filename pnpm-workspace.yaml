@@ -1,0 +1,11 @@
+allowBuilds:
+  '@parcel/watcher': true
+  electron: true
+  electron-winstaller: true
+  unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - postcss
+
+overrides:
+  punycode: 2.3.1

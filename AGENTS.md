@@ -9,7 +9,7 @@ imFile 是一个基于 Electron + Vue 3 的全功能桌面下载管理器（Motr
 ### 开发环境要求
 
 - Node.js >= 24（通过 nvm 安装：`nvm install 24`）
-- pnpm（版本由 `package.json` 中 `packageManager` 字段指定，通过 corepack 自动管理）
+- pnpm 11（版本由 `package.json` 中 `packageManager` 字段指定，通过 corepack 自动管理；pnpm 配置位于 `pnpm-workspace.yaml`）
 - 显示服务器（Xvfb 已预装在 Cloud Agent VM，DISPLAY=:1）
 
 ### 常用命令
