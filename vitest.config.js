@@ -14,11 +14,6 @@ export default defineConfig({
     }
   },
   test: {
-    environment: 'node',
-    environmentMatchGlobs: [
-      ['tests/renderer/**', 'happy-dom']
-    ],
-    include: ['tests/**/*.test.js'],
     coverage: {
       provider: 'v8',
       include: [
@@ -28,6 +23,24 @@ export default defineConfig({
         'src/renderer/components/**/*.vue'
       ],
       reporter: ['text', 'lcov']
-    }
+    },
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'node',
+          environment: 'node',
+          include: ['tests/{main,shared}/**/*.test.js']
+        }
+      },
+      {
+        extends: true,
+        test: {
+          name: 'renderer',
+          environment: 'happy-dom',
+          include: ['tests/renderer/**/*.test.js']
+        }
+      }
+    ]
   }
 })

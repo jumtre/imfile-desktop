@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const spawnMock = vi.fn()
+const isWindowsMock = vi.fn(() => false)
 
 vi.mock('node:child_process', () => ({
   spawn: (...args) => spawnMock(...args)
@@ -8,7 +9,7 @@ vi.mock('node:child_process', () => ({
 
 vi.mock('electron-is', () => ({
   default: {
-    windows: () => process.platform === 'win32'
+    windows: () => isWindowsMock()
   }
 }))
 
@@ -23,6 +24,7 @@ const { spawnDownloadCompleteCommand } = await import(
 describe('spawnDownloadCompleteCommand', () => {
   beforeEach(() => {
     spawnMock.mockReset()
+    isWindowsMock.mockReturnValue(false)
     spawnMock.mockReturnValue({
       on: vi.fn(),
       unref: vi.fn()
@@ -30,8 +32,7 @@ describe('spawnDownloadCompleteCommand', () => {
   })
 
   it('Unix 下直接 spawn 命令与参数', () => {
-    const originalPlatform = process.platform
-    Object.defineProperty(process, 'platform', { value: 'linux' })
+    isWindowsMock.mockReturnValue(false)
 
     spawnDownloadCompleteCommand('/usr/bin/notify.sh', 'gid1', '1', '/tmp/a.zip')
 
@@ -40,13 +41,10 @@ describe('spawnDownloadCompleteCommand', () => {
       ['gid1', '1', '/tmp/a.zip'],
       expect.objectContaining({ detached: true, stdio: 'ignore' })
     )
-
-    Object.defineProperty(process, 'platform', { value: originalPlatform })
   })
 
   it('Windows 下 .bat 通过 cmd.exe 执行', () => {
-    const originalPlatform = process.platform
-    Object.defineProperty(process, 'platform', { value: 'win32' })
+    isWindowsMock.mockReturnValue(true)
 
     spawnDownloadCompleteCommand('C:\\hooks\\done.bat', 'g2', '2', 'C:\\file.zip')
 
@@ -55,8 +53,6 @@ describe('spawnDownloadCompleteCommand', () => {
       ['/d', '/s', '/c', 'C:\\hooks\\done.bat', 'g2', '2', 'C:\\file.zip'],
       expect.objectContaining({ windowsHide: true })
     )
-
-    Object.defineProperty(process, 'platform', { value: originalPlatform })
   })
 
   it('spawn 失败时返回 null', () => {
