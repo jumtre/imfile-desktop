@@ -196,7 +196,7 @@ export default {
 
       const path = getTaskFullPath(task)
       this.showTaskCompleteNotify(task, isBT, path)
-      this.$electron.ipcRenderer.send('event', 'task-download-complete', task, path)
+      this.$electron.ipcRenderer.send('event', 'task-download-complete', task, path, isBT)
 
       this.$nextTick(() => {
         this.$store.dispatch('task/runPostDownloadActionIfIdle')

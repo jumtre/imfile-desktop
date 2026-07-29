@@ -124,6 +124,8 @@ export default class ConfigManager {
         'log-level': 'warn',
         'new-task-show-downloading': true,
         'no-confirm-before-delete-task': false,
+        'on-bt-download-complete': EMPTY_STRING,
+        'on-download-complete': EMPTY_STRING,
         'open-at-login': false,
         protocols: { magnet: true, thunder: false, torrent: true, ed2k: false },
         proxy: {

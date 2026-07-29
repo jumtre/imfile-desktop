@@ -109,5 +109,11 @@ export default {
   'follow-metalink': '自动开始下载磁力链接、种子内的文件',
   'follow-torrent': '种子下载完后自动下载种子内容',
   'not-saved': '设置未保存',
-  'not-saved-confirm': '已修改的设置将会丢失，确定要离开吗?'
+  'not-saved-confirm': '已修改的设置将会丢失，确定要离开吗?',
+  'on-download-complete': '下载完成时执行命令',
+  'on-download-complete-placeholder': '/path/to/script.sh',
+  'on-download-complete-hint': '与 aria2 的 --on-download-complete 相同：下载完成后执行可执行文件或脚本，参数依次为 GID、文件数、文件路径。留空则不执行。',
+  'on-bt-download-complete': 'BT 下载完成时执行命令',
+  'on-bt-download-complete-placeholder': '/path/to/bt-script.sh',
+  'on-bt-download-complete-hint': '与 aria2 的 --on-bt-download-complete 相同：BT 任务下载完成、开始做种前执行。参数格式同上。留空则不执行。'
 }

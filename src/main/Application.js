@@ -15,6 +15,7 @@ import {
   PROXY_SCOPES
 } from '@shared/constants'
 import { checkIsNeedRun } from '@shared/utils'
+import { buildDownloadCompleteHookArgs } from '@shared/utils/downloadCompleteHook'
 import {
   convertTrackerDataToComma,
   fetchBtTrackerFromSource,
@@ -1242,6 +1243,50 @@ export default class Application extends EventEmitter {
     })
   }
 
+  /**
+   * 执行用户配置的下载完成钩子（兼容 aria2 --on-download-complete / --on-bt-download-complete）。
+   * 参数顺序：GID、文件数、文件路径。
+   */
+  runDownloadCompleteHook (task, fallbackPath, isBT) {
+    const key = isBT ? 'on-bt-download-complete' : 'on-download-complete'
+    const command = String(this.configManager.getUserConfig(key) || '').trim()
+    if (!command) {
+      return
+    }
+
+    const { gid, numFiles, filePath } = buildDownloadCompleteHookArgs(
+      task,
+      fallbackPath
+    )
+    if (!gid) {
+      return
+    }
+
+    logger.log(
+      '[imFile] download-complete hook:',
+      key,
+      command,
+      gid,
+      numFiles,
+      filePath
+    )
+
+    const spawnOpts = { detached: true, stdio: 'ignore' }
+    if (is.windows()) {
+      spawnOpts.windowsHide = true
+    }
+
+    try {
+      const child = spawn(command, [gid, numFiles, filePath], spawnOpts)
+      child.on('error', (err) => {
+        logger.warn('[imFile] download-complete hook error:', err.message)
+      })
+      child.unref()
+    } catch (err) {
+      logger.warn('[imFile] download-complete hook spawn failed:', err.message)
+    }
+  }
+
   sendCommand (command, ...args) {
     if (!this.emit(command, ...args)) {
       const window = this.windowManager.getFocusedWindow()
@@ -1617,13 +1662,16 @@ export default class Application extends EventEmitter {
       this.trayManager.handleSpeedChange(speed)
     })
 
-    this.on('task-download-complete', (task, path) => {
+    this.on('task-download-complete', (task, path, isBT) => {
       this.dockManager.openDock(path)
 
       if (is.linux()) {
-        return
+        // Linux 无 addRecentDocument，但仍需执行下载完成钩子
+      } else {
+        app.addRecentDocument(path)
       }
-      app.addRecentDocument(path)
+
+      this.runDownloadCompleteHook(task, path, isBT)
     })
 
     if (this.configManager.userConfig.get('show-progress-bar')) {

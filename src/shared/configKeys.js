@@ -20,6 +20,8 @@ const userKeys = [
   'log-level',
   'new-task-show-downloading',
   'no-confirm-before-delete-task',
+  'on-bt-download-complete',
+  'on-download-complete',
   'open-at-login',
   'protocols',
   'proxy',
