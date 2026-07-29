@@ -1,7 +1,6 @@
 'use strict'
 
 import { EventEmitter } from 'node:events'
-import _fetch from 'node-fetch'
 import _WebSocket from 'ws'
 import { JSONRPCError } from './JSONRPCError'
 
@@ -9,7 +8,7 @@ const Deferred = require('./Deferred')
 const promiseEvent = require('./promiseEvent')
 
 const WebSocket = global.WebSocket || _WebSocket
-const fetch = global.fetch ? global.fetch.bind(global) : _fetch
+const fetch = globalThis.fetch.bind(globalThis)
 
 export class JSONRPCClient extends EventEmitter {
   constructor (options) {
