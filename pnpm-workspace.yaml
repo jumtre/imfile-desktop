@@ -11,3 +11,5 @@ minimumReleaseAgeExclude:
 
 overrides:
   punycode: 2.3.1
+  # CVE: host confusion via literal backslash authority delimiter (fixed in 3.1.4)
+  fast-uri: ^3.1.4
