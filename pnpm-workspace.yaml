@@ -12,6 +12,6 @@ minimumReleaseAgeExclude:
 overrides:
   punycode: 2.3.1
   # CVE: host confusion via literal backslash authority delimiter (fixed in 3.1.4)
-  fast-uri: ^3.1.4
+  fast-uri: ^4.0.0
   # CVE: removeScripts 未完全清除可执行脚本 (fixed in 4.0.2)
   svgo: ^4.0.2
