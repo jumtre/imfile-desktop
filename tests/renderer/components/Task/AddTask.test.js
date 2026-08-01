@@ -94,6 +94,23 @@ describe('AddTask', () => {
     expect(dispatchSpy).toHaveBeenCalledWith('app/updateAddTaskOptions', {})
   })
 
+  it('打开对话框时初始化分片数表单字段', async () => {
+    const { wrapper } = mountAddTask()
+    wrapper.vm.handleOpen()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.vm.form.split).toBe(16)
+  })
+
+  it('显示分片数输入控件', async () => {
+    const { wrapper } = mountAddTask()
+    wrapper.vm.handleOpen()
+    await wrapper.vm.$nextTick()
+
+    const splitInput = wrapper.find('.el-input-number')
+    expect(splitInput.exists()).toBe(true)
+  })
+
   it('选择目录时写入表单并记录历史', () => {
     const { wrapper, store } = mountAddTask()
     const dispatchSpy = vi.spyOn(store, 'dispatch')

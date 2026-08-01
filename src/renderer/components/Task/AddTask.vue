@@ -36,7 +36,7 @@
         </el-tab-pane>
       </el-tabs>
       <el-row :gutter="12">
-        <el-col :span="24" :xs="24">
+        <el-col :span="15" :xs="24">
           <el-form-item
             :label="`${$t('task.task-out')}: `"
             :label-width="formLabelWidth"
@@ -48,7 +48,7 @@
             </el-input>
           </el-form-item>
         </el-col>
-        <!-- <el-col :span="9" :xs="24">
+        <el-col :span="9" :xs="24">
           <el-form-item
             :label="`${$t('task.task-split')}: `"
             :label-width="formLabelWidth"
@@ -62,7 +62,7 @@
             >
             </el-input-number>
           </el-form-item>
-        </el-col> -->
+        </el-col>
       </el-row>
       <el-form-item
         :label="`${$t('task.task-dir')}: `"
