@@ -111,6 +111,23 @@ describe('AddTask', () => {
     expect(splitInput.exists()).toBe(true)
   })
 
+  it('提交任务时携带自定义分片数', async () => {
+    const { wrapper, store } = mountAddTask()
+    const dispatchSpy = vi.spyOn(store, 'dispatch')
+
+    wrapper.vm.handleOpen()
+    wrapper.vm.form.uris = 'https://example.com/file.zip'
+    wrapper.vm.form.split = 2
+    await wrapper.vm.submitForm('taskForm')
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      'task/addUri',
+      expect.objectContaining({
+        options: expect.objectContaining({ split: 2 })
+      })
+    )
+  })
+
   it('选择目录时写入表单并记录历史', () => {
     const { wrapper, store } = mountAddTask()
     const dispatchSpy = vi.spyOn(store, 'dispatch')

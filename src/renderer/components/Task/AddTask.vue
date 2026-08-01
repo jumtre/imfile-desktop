@@ -57,7 +57,7 @@
               v-model="form.split"
               controls-position="right"
               :min="1"
-              :max="config.engineMaxConnectionPerServer"
+              :max="splitMax"
               :label="$t('task.task-split')"
             >
             </el-input-number>
@@ -215,7 +215,7 @@ import {
   buildUriPayload,
   buildTorrentPayload
 } from '@/utils/task'
-import { ADD_TASK_TYPE } from '@shared/constants'
+import { ADD_TASK_TYPE, ENGINE_MAX_CONNECTION_PER_SERVER } from '@shared/constants'
 import { detectResource } from '@shared/utils'
 import { Close } from '@element-plus/icons-vue'
 import '@/components/Icons/inbox'
@@ -264,6 +264,9 @@ export default {
     },
     dialogTop () {
       return this.showAdvanced ? '8vh' : '15vh'
+    },
+    splitMax () {
+      return this.config.engineMaxConnectionPerServer || ENGINE_MAX_CONNECTION_PER_SERVER
     }
   },
   watch: {
