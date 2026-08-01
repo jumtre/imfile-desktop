@@ -170,7 +170,12 @@ export const elementPlusStubs = {
   'el-form-item': { template: '<div class="el-form-item"><slot /></div>' },
   'el-tabs': { template: '<div class="el-tabs"><slot /></div>', props: ['modelValue'] },
   'el-tab-pane': { template: '<div class="el-tab-pane"><slot /></div>', props: ['name', 'label'] },
-  'el-input': { template: '<input class="el-input" />' },
+  'el-input': {
+    template: '<input class="el-input" />',
+    methods: {
+      focus () {}
+    }
+  },
   'el-button': { template: '<button class="el-button"><slot /></button>' },
   'el-row': { template: '<div class="el-row"><slot /></div>' },
   'el-col': { template: '<div class="el-col"><slot /></div>', props: ['span'] },

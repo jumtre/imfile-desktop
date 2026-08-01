@@ -2,6 +2,7 @@ import { isEmpty } from 'lodash'
 
 import {
   ADD_TASK_TYPE,
+  ENGINE_MAX_CONNECTION_PER_SERVER,
   NONE_SELECTED_FILES,
   SELECTED_ALL_FILES
 } from '@shared/constants'
@@ -13,6 +14,28 @@ import {
   buildHeadersFromCurl,
   buildDefaultOptionsFromCurl
 } from '@shared/utils/curl'
+
+export const resolveTaskSplit = ({
+  split = 0,
+  maxConnectionPerServer = 0,
+  engineMaxConnectionPerServer = ENGINE_MAX_CONNECTION_PER_SERVER
+} = {}) => {
+  const engineMax = engineMaxConnectionPerServer || ENGINE_MAX_CONNECTION_PER_SERVER
+  const preferred = split > 0 ? split : maxConnectionPerServer
+  const cappedByPreference = maxConnectionPerServer > 0
+    ? Math.min(preferred, maxConnectionPerServer)
+    : preferred
+
+  return Math.min(Math.max(1, cappedByPreference || 1), engineMax)
+}
+
+export const clampTaskSplit = (
+  value,
+  engineMaxConnectionPerServer = ENGINE_MAX_CONNECTION_PER_SERVER
+) => {
+  const engineMax = engineMaxConnectionPerServer || ENGINE_MAX_CONNECTION_PER_SERVER
+  return Math.min(Math.max(1, value || 1), engineMax)
+}
 
 export const initTaskForm = state => {
   const { addTaskUrl, addTaskOptions } = state.app
@@ -38,12 +61,19 @@ export const initTaskForm = state => {
     out: '',
     referer: '',
     selectFile: NONE_SELECTED_FILES,
-    split,
+    split: resolveTaskSplit({
+      split,
+      maxConnectionPerServer,
+      engineMaxConnectionPerServer
+    }),
     torrent: '',
     uris: addTaskUrl,
     userAgent: '',
     authorization: '',
     ...addTaskOptions
+  }
+  if ('split' in addTaskOptions) {
+    result.split = clampTaskSplit(addTaskOptions.split, engineMaxConnectionPerServer)
   }
   return result
 }

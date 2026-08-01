@@ -36,7 +36,7 @@
         </el-tab-pane>
       </el-tabs>
       <el-row :gutter="12">
-        <el-col :span="24" :xs="24">
+        <el-col :span="15" :xs="24">
           <el-form-item
             :label="`${$t('task.task-out')}: `"
             :label-width="formLabelWidth"
@@ -48,7 +48,7 @@
             </el-input>
           </el-form-item>
         </el-col>
-        <!-- <el-col :span="9" :xs="24">
+        <el-col :span="9" :xs="24">
           <el-form-item
             :label="`${$t('task.task-split')}: `"
             :label-width="formLabelWidth"
@@ -57,12 +57,12 @@
               v-model="form.split"
               controls-position="right"
               :min="1"
-              :max="config.engineMaxConnectionPerServer"
+              :max="splitMax"
               :label="$t('task.task-split')"
             >
             </el-input-number>
           </el-form-item>
-        </el-col> -->
+        </el-col>
       </el-row>
       <el-form-item
         :label="`${$t('task.task-dir')}: `"
@@ -215,7 +215,7 @@ import {
   buildUriPayload,
   buildTorrentPayload
 } from '@/utils/task'
-import { ADD_TASK_TYPE } from '@shared/constants'
+import { ADD_TASK_TYPE, ENGINE_MAX_CONNECTION_PER_SERVER } from '@shared/constants'
 import { detectResource } from '@shared/utils'
 import { Close } from '@element-plus/icons-vue'
 import '@/components/Icons/inbox'
@@ -264,6 +264,9 @@ export default {
     },
     dialogTop () {
       return this.showAdvanced ? '8vh' : '15vh'
+    },
+    splitMax () {
+      return this.config.engineMaxConnectionPerServer || ENGINE_MAX_CONNECTION_PER_SERVER
     }
   },
   watch: {
@@ -274,7 +277,7 @@ export default {
 
       if (current === ADD_TASK_TYPE.URI) {
         setTimeout(() => {
-          this.$refs.uri && this.$refs.uri.focus()
+          this.$refs.uri?.focus?.()
         }, 50)
       }
     },
@@ -309,7 +312,7 @@ export default {
       if (this.taskType === ADD_TASK_TYPE.URI) {
         this.autofillResourceLink()
         setTimeout(() => {
-          this.$refs.uri && this.$refs.uri.focus()
+          this.$refs.uri?.focus?.()
         }, 50)
       }
     },

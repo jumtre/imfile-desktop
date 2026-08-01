@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ADD_TASK_TYPE } from '@shared/constants'
 import {
@@ -32,6 +32,19 @@ vi.mock('@/components/Icons/inbox', () => ({}))
 const { default: AddTask } = await import('@/components/Task/AddTask.vue')
 
 describe('AddTask', () => {
+  beforeEach(() => {
+    vi.stubGlobal('navigator', {
+      clipboard: {
+        readText: vi.fn(() => Promise.resolve(''))
+      }
+    })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
+
   const mountAddTask = (props = {}) => {
     const store = createTestStore()
     const msg = vi.fn()
@@ -92,6 +105,46 @@ describe('AddTask', () => {
     wrapper.vm.handleClose()
     expect(dispatchSpy).toHaveBeenCalledWith('app/hideAddTaskDialog')
     expect(dispatchSpy).toHaveBeenCalledWith('app/updateAddTaskOptions', {})
+  })
+
+  it('打开对话框时初始化分片数表单字段', async () => {
+    vi.useFakeTimers()
+    const { wrapper } = mountAddTask()
+    wrapper.vm.handleOpen()
+    await vi.runAllTimersAsync()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.vm.form.split).toBe(16)
+  })
+
+  it('显示分片数输入控件', async () => {
+    vi.useFakeTimers()
+    const { wrapper } = mountAddTask()
+    wrapper.vm.handleOpen()
+    await vi.runAllTimersAsync()
+    await wrapper.vm.$nextTick()
+
+    const splitInput = wrapper.find('.el-input-number')
+    expect(splitInput.exists()).toBe(true)
+  })
+
+  it('提交任务时携带自定义分片数', async () => {
+    vi.useFakeTimers()
+    const { wrapper, store } = mountAddTask()
+    const dispatchSpy = vi.spyOn(store, 'dispatch')
+
+    wrapper.vm.handleOpen()
+    await vi.runAllTimersAsync()
+    wrapper.vm.form.uris = 'https://example.com/file.zip'
+    wrapper.vm.form.split = 2
+    await wrapper.vm.submitForm('taskForm')
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      'task/addUri',
+      expect.objectContaining({
+        options: expect.objectContaining({ split: 2 })
+      })
+    )
   })
 
   it('选择目录时写入表单并记录历史', () => {
