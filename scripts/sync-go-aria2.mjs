@@ -45,8 +45,8 @@ const FOLDER_TO_GO = {
   }
 }
 
-/** 默认同步的 go-aria2 版本；可通过环境变量 GO_ARIA2_VERSION 覆盖（如 v0.1.1） */
-const GO_ARIA2_VERSION = process.env.GO_ARIA2_VERSION || 'v0.1.1'
+/** 默认同步的 go-aria2 版本；可通过环境变量 GO_ARIA2_VERSION 覆盖（如 v0.2.1） */
+const GO_ARIA2_VERSION = process.env.GO_ARIA2_VERSION || 'v0.2.1'
 
 function releaseApiUrl (version) {
   const tag = version.startsWith('v') ? version : `v${version}`
