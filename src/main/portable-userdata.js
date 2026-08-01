@@ -9,6 +9,7 @@
 import { cpSync, existsSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { app } from 'electron'
+import { removeEmptyLegacyUserDataDir } from './utils/portableLegacyCleanup'
 
 const PORTABLE_DATA_FILES = new Set([
   'user.json',
@@ -137,4 +138,5 @@ if (portableRoot) {
   app.setPath('userData', portableRoot)
   app.setPath('logs', join(portableRoot, 'logs'))
   app.setPath('cache', getPortableCacheDir(portableRoot))
+  removeEmptyLegacyUserDataDir(defaultUserData)
 }
