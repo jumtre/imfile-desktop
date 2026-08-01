@@ -1,3 +1,4 @@
+- 升级 go-aria2 下载内核至 v0.2.1（FTP/SFTP 限速与热更新、ED2K 迁移至 goed2k/core、补齐 saveSession/removeDownloadResult 等 RPC、修复 bt-max-peers 热更新等）
 - 升级 go-aria2 下载内核至 v0.1.1（addUri/addTorrent 支持 position 入队、getGlobalStat 增加 numStoppedTotal、新增 forceShutdown 别名等）
 - 任务页增加搜索入口并修复 Tab 与路由同步
 - 修复高级设置保存时校验回调导致无成功提示
