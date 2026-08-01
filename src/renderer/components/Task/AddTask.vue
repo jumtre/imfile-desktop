@@ -277,7 +277,7 @@ export default {
 
       if (current === ADD_TASK_TYPE.URI) {
         setTimeout(() => {
-          this.$refs.uri && this.$refs.uri.focus()
+          this.$refs.uri?.focus?.()
         }, 50)
       }
     },
@@ -312,7 +312,7 @@ export default {
       if (this.taskType === ADD_TASK_TYPE.URI) {
         this.autofillResourceLink()
         setTimeout(() => {
-          this.$refs.uri && this.$refs.uri.focus()
+          this.$refs.uri?.focus?.()
         }, 50)
       }
     },
