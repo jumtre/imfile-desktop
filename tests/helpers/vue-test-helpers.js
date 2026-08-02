@@ -85,11 +85,30 @@ const testMessages = {
     'uri-task': '链接任务',
     'torrent-task': '种子任务',
     'thunder-link-tips': '检测到迅雷链接',
-    'show-advanced-options': '高级选项'
+    'show-advanced-options': '高级选项',
+    'get-task-name': '未知任务',
+    'opening-task-message': '正在打开 {taskName}',
+    'file-not-exist': '文件不存在',
+    'delete-task': '删除任务',
+    'select-torrent': '选择种子文件',
+    'task-add': '新建任务',
+    'new-task': '新建任务',
+    'task-all-start': '全部开始',
+    'task-all-stop': '全部暂停',
+    'post-download-action-menu': '下载完成后',
+    'post-download-action-none': '无操作',
+    'post-download-action-shutdown': '关机',
+    'post-download-action-sleep': '睡眠',
+    'post-download-action-quit': '退出应用',
+    'remaining-prefix': '剩余'
   },
   app: {
     cancel: '取消',
-    submit: '提交'
+    submit: '提交',
+    gt1d: '>1天',
+    hour: '时',
+    minute: '分',
+    second: '秒'
   }
 }
 
@@ -140,15 +159,31 @@ export const createTestStore = (overrides = {}) => {
           taskList: [],
           addTaskUrl: '',
           addTaskOptions: {},
+          addTaskTorrents: [],
           ...(overrides.appState || {})
         },
-        actions: appActions
+        actions: {
+          showAddTaskDialog: vi.fn(),
+          addTaskAddTorrents: vi.fn(),
+          ...appActions
+        }
       },
       task: {
         namespaced: true,
+        state: {
+          selectedTaskKeyList: [],
+          currentList: 'all',
+          onCompleteAction: 'none',
+          ...(overrides.taskState || {})
+        },
         actions: {
           addUri: vi.fn(() => Promise.resolve()),
           addTorrent: vi.fn(() => Promise.resolve()),
+          toggleTask: vi.fn(),
+          fetchList: vi.fn(),
+          resumeAllTask: vi.fn(() => Promise.resolve()),
+          pauseAllTask: vi.fn(() => Promise.resolve()),
+          setOnCompleteAction: vi.fn(),
           ...(overrides.taskActions || {})
         }
       }
