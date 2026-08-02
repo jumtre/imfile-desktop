@@ -22,6 +22,7 @@ export default defineConfig({
         'src/main/utils/**/*.js',
         'src/main/configs/**/*.js',
         'src/main/core/**/*.js',
+        'src/renderer/store/**/*.js',
         'src/renderer/components/**/*.vue'
       ],
       reporter: ['text', 'lcov']
