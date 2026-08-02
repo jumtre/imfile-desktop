@@ -19,11 +19,15 @@ export default defineConfig({
       provider: 'v8',
       include: [
         'src/shared/utils/**/*.js',
+        'src/shared/aria2/lib/**/*.js',
+        'src/shared/locales/**/*.js',
         'src/main/utils/**/*.js',
         'src/main/configs/**/*.js',
         'src/main/core/**/*.js',
         'src/renderer/store/**/*.js',
-        'src/renderer/components/**/*.vue'
+        'src/renderer/api/**/*.js',
+        'src/renderer/components/**/*.vue',
+        'src/renderer/components/CommandManager/**/*.js'
       ],
       reporter: ['text', 'lcov']
     },
